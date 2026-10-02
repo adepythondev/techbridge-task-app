@@ -1,44 +1,58 @@
-const API_URL = API_BASE_URL + "/api/tasks";
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("form");
+  if (!form) return;
+  form.setAttribute("novalidate", "");
 
-async function loadTasks() {
-    try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error("Failed to fetch tasks");
-        const tasks = await response.json();
-        console.log("Tasks loaded successfully:", tasks);
-        displayTasks(tasks);
-    } catch (error) {
-        console.error("Error fetching tasks:", error);
-    }
-}
+  let msg = document.getElementById("form-message");
+  if (!msg) {
+    msg = document.createElement("p");
+    msg.id = "form-message";
+    msg.setAttribute("aria-live", "polite");
+    msg.style.cssText = "margin-top:12px;font-weight:bold;";
+    form.appendChild(msg);
+  }
+  const show = (text, ok) => {
+    msg.textContent = text;
+    msg.style.color = ok ? "#2ecc71" : "#e74c3c";
+  };
 
-function displayTasks(tasks) {
-    // Target multiple possible container IDs/classes used in the template
-    const container = document.getElementById("task-container") || 
-                      document.querySelector(".task-container") || 
-                      document.getElementById("tasks-container") ||
-                      document.querySelector("tbody");
-                      
-    if (!container) {
-        console.error("No task container found in HTML!");
-        return;
-    }
-    
-    container.innerHTML = "";
-    tasks.forEach(task => {
-        const div = document.createElement("div");
-        div.className = "task-card";
-        div.style.marginBottom = "10px";
-        div.style.padding = "10px";
-        div.style.border = "1px solid #333";
-        div.style.borderRadius = "8px";
-        div.innerHTML = `
-            <h4 style="margin: 0 0 5px 0;">${task.title}</h4>
-            <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #ccc;">${task.description}</p>
-            <span style="font-size: 0.8em; padding: 2px 6px; background: #222; border-radius: 4px;">${task.status}</span>
-        `;
-        container.appendChild(div);
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const data = {};
+    const missing = [];
+
+    Array.from(form.elements).forEach((el) => {
+      const key = el.name || el.id;
+      if (!key || ["submit", "button", "reset", "fieldset"].includes(el.type)) return;
+      if (el.type === "radio" && !el.checked) return;
+      if (el.type === "checkbox") { data[key] = el.checked; return; }
+      const value = (el.value || "").trim();
+      data[key] = el.type === "email" ? value.toLowerCase() : value;
+      if (!value) missing.push(key);
     });
-}
 
-document.addEventListener("DOMContentLoaded", loadTasks);
+    if (missing.length) {
+      show("Please fill in: " + missing.join(", "), false);
+      return;
+    }
+
+    const emailKey = Object.keys(data).find((k) => /email/i.test(k));
+    if (emailKey && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data[emailKey])) {
+      show("Please enter a valid email address.", false);
+      return;
+    }
+
+    const nameKey = Object.keys(data).find((k) => /name/i.test(k) && !/github|user/i.test(k));
+    const trackKey = Object.keys(data).find((k) => /track|program|course/i.test(k));
+    const user = {
+      name: nameKey ? data[nameKey] : "",
+      track: trackKey ? data[trackKey] : "",
+      email: emailKey ? data[emailKey] : "",
+      details: data
+    };
+    try { localStorage.setItem("techbridgeUser", JSON.stringify(user)); } catch (err) {}
+
+    show("Registration successful! Redirecting to your dashboard...", true);
+    setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
+  });
+});
