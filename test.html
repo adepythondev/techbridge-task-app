@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:monospace;padding:12px">
+<h3>API test</h3>
+<pre id="out">Testing...</pre>
+<script src="config.js"></script>
+<script>
+const out = document.getElementById("out");
+if (typeof API_BASE_URL === "undefined") {
+  out.textContent = "API_BASE_URL NOT DEFINED (config.js did not load)";
+} else {
+  out.textContent = "API_BASE_URL = " + API_BASE_URL + "\n";
+  fetch(API_BASE_URL + "/api/tasks")
+    .then(r => { out.textContent += "HTTP status: " + r.status + "\n"; return r.json(); })
+    .then(d => { out.textContent += "Tasks received: " + d.length; })
+    .catch(e => { out.textContent += "ERROR: " + e.name + " - " + e.message; });
+}
+</script>
+</body>
+</html>
