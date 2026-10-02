@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_URL = "https://techbridge-task-app.onrender.com/api/tasks";
+  const API_URL = API_BASE_URL + "/api/tasks";
   const USER_KEY = "techbridgeUser";
   const TIMEOUT_MS = 60000;
   const MAX_RETRIES = 2;

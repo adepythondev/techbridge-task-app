@@ -1,4 +1,4 @@
-const API_URL = "https://techbridge-task-1-5.onrender.com/api/tasks";
+const API_URL = API_BASE_URL + "/api/tasks";
 
 async function loadTasks() {
     try {
